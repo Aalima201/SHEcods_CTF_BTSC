@@ -1,0 +1,60 @@
+#include <iostream>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <algorithm>
+
+namespace fs = std::filesystem;
+
+std::string atbash_cipher(const std::string& text) {
+    std::string result = text;
+    for (char& c : result) {
+        if (isalpha(c)) {
+            if (isupper(c)) {
+                c = 'Z' - (c - 'A');
+            } else {
+                c = 'z' - (c - 'a');
+            }
+        }
+    }
+    return result;
+}
+
+std::pair<std::string, std::string> find_flag_in_repository(const std::string& repo_path) {
+    for (const auto& entry : fs::recursive_directory_iterator(repo_path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".txt") {
+            std::ifstream file(entry.path());
+            if (file.is_open()) {
+                std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+                file.close();
+                std::string decoded_content = atbash_cipher(content);
+
+                std::string flag_start = "IE_CTF{";
+                size_t start_idx = decoded_content.find(flag_start);
+                if (start_idx != std::string::npos) {
+                    size_t end_idx = decoded_content.find("}", start_idx) + 1;
+                    if (end_idx != std::string::npos) {
+                        std::string flag = decoded_content.substr(start_idx, end_idx - start_idx);
+                        return {flag, entry.path().string()};
+                    }
+                }
+            }
+        }
+    }
+    return {"", ""};
+}
+
+int main() {
+    std::string repo_path = "path_to_repository";  // Set the path to your repository
+
+    auto [flag, file_path] = find_flag_in_repository(repo_path);
+
+    if (!flag.empty()) {
+        std::cout << "The flag obtained: " << flag << std::endl;
+        std::cout << "Flag was found in file: " << file_path << std::endl;
+    } else {
+        std::cout << "Flag not found in the repository." << std::endl;
+    }
+
+    return 0;
+}
