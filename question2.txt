@@ -1,0 +1,19 @@
+#include <iostream>
+#include <string>
+#include <bitset>
+
+std::string binary_to_text(const std::string& binary_str) {
+    std::string text;
+    for (size_t i = 0; i < binary_str.size(); i += 8) {
+        std::bitset<8> byte(binary_str.substr(i, 8));
+        text += static_cast<char>(byte.to_ulong());
+    }
+    return text;
+}
+
+int main() {
+    std::string binary_string = "0100100001100101011011000110110001101111";  // Binary representation of "Hello"
+    std::string decoded_text = binary_to_text(binary_string);
+    std::cout << "Decoded Text: " << decoded_text << std::endl;
+    return 0;
+}
