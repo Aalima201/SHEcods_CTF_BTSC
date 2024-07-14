@@ -1,0 +1,64 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <bitset>
+
+// Function to convert binary string to text
+std::string binary_to_text(const std::string& binary_str) {
+    std::string text;
+    for (size_t i = 0; i < binary_str.size(); i += 8) {
+        std::bitset<8> byte(binary_str.substr(i, 8));
+        text += static_cast<char>(byte.to_ulong());
+    }
+    return text;
+}
+
+// Function to read the file content
+std::string read_file(const std::string& file_path) {
+    std::ifstream file(file_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file");
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+    return content;
+}
+
+// Function to find the flag in the text
+std::string find_flag(const std::string& text) {
+    std::string flag_start = "IE_CTF{";
+    size_t start_idx = text.find(flag_start);
+    if (start_idx != std::string::npos) {
+        size_t end_idx = text.find("}", start_idx) + 1;
+        if (end_idx != std::string::npos) {
+            return text.substr(start_idx, end_idx - start_idx);
+        }
+    }
+    return "";
+}
+
+int main() {
+    std::string file_path = "path_to_your_file.txt";  // Set the path to your file containing the binary data
+
+    try {
+        // Read the file content
+        std::string binary_content = read_file(file_path);
+
+        // Decode the binary content to text
+        std::string decoded_text = binary_to_text(binary_content);
+
+        // Find the flag in the decoded text
+        std::string flag = find_flag(decoded_text);
+
+        // Output the results
+        if (!flag.empty()) {
+            std::cout << "The flag obtained: " << flag << std::endl;
+        } else {
+            std::cout << "Flag not found in the decoded text." << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
